@@ -26,12 +26,12 @@ if (!empty($_POST)) {
     }
 
     if (empty($errors)) {
-        $toEmail = 'greentropikal@outlook.com';
+        $toEmail = 'info@ecogreensolutions.co.ke'; // Recipient email address
         $emailSubject = 'New email from your contact form';
         
         // IMPORTANT: Replace 'yourdomain.com' with your actual website domain
         // This MUST be an email that looks like it belongs to your server.
-        $senderEmail = 'website-form@yourdomain.com'; 
+        $senderEmail = 'contact-form@ecogreensolutions.co.ke'; 
         
         // Constructing Headers as a string for maximum compatibility
         $headers  = "From: " . $senderEmail . "\r\n";
