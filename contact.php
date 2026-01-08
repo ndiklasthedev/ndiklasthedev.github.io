@@ -4,13 +4,13 @@ $errors = [];
 $errorMessage = '';
 
 if (!empty($_POST)) {
-    // Sanitize and capture inputs
+    // 1. Sanitize and capture inputs from your HTML form fields
     $name = strip_tags(trim($_POST['name']));
     $email = filter_var(trim($_POST['email']), FILTER_SANITIZE_EMAIL);
     $message = strip_tags(trim($_POST['message']));
     $phone = strip_tags(trim($_POST['phone']));
 
-    // Validation
+    // 2. Validation Logic
     if (empty($name)) {
         $errors[] = 'Name is empty';
     }
@@ -25,49 +25,41 @@ if (!empty($_POST)) {
         $errors[] = 'Message is empty';
     }
 
+    // 3. Sending Logic (Only runs if there are no errors)
     if (empty($errors)) {
-        $toEmail = 'info@ecogreensolutions.co.ke'; // Recipient email address
+        $toEmail = 'info@ecogreensolutions.co.ke'; // Your recipient address
         $emailSubject = 'New email from your contact form';
         
-        // IMPORTANT: Replace 'yourdomain.com' with your actual website domain
-        // This MUST be an email that looks like it belongs to your server.
-        $senderEmail = 'contact-form@ecogreensolutions.co.ke'; 
+        // CRITICAL FIX: The sender must be an email on YOUR domain to prevent "spoofing" blocks
+        $senderEmail = 'contact-form@ecogreensolutions.co.ke';
         
-        // Constructing Headers as a string for maximum compatibility
+        // Headers formatted as a string for maximum server compatibility
         $headers  = "From: " . $senderEmail . "\r\n";
-        $headers .= "Reply-To: " . $email . "\r\n";
+        $headers .= "Reply-To: " . $email . "\r\n"; // So you can reply directly to the user
         $headers .= "MIME-Version: 1.0\r\n";
         $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
 
-        // Constructing the Email Body
-        $bodyParagraphs = [
-            "<strong>Name:</strong> {$name}",
-            "<strong>Phone:</strong> {$phone}",
-            "<strong>Email:</strong> {$email}",
-            "<br><strong>Message:</strong><br>",
-            nl2br($message) // Converts line breaks to <br> tags
-        ];
-        $body = "<html><body>" . join("<br>", $bodyParagraphs) . "</body></html>";
+        // HTML Body construction
+        $body = "<html><body>" .
+                "<h2>New Contact Request</h2>" .
+                "<b>Name:</b> {$name}<br>" .
+                "<b>Phone:</b> {$phone}<br>" .
+                "<b>Email:</b> {$email}<br><br>" .
+                "<b>Message:</b><br>" . nl2br($message) . 
+                "</body></html>";
 
-        // Attempt to send
+        // 4. Attempt to send using the server's mail engine
         if (mail($toEmail, $emailSubject, $body, $headers)) {
-            // Redirect to thank you page
-            header('Location: thank-you.html');
-            exit; 
+            // Redirect to your thank you page or index if successful
+            header('Location: index.html?status=success'); 
+            exit;
         } else {
             $errorMessage = 'Oops, something went wrong. The server failed to send the message.';
         }
     } else {
-        // Display validation errors
+        // Handle validation errors
         $allErrors = join('<br/>', $errors);
         $errorMessage = "<p style='color: red;'>{$allErrors}</p>";
     }
 }
-
 ?>
-
-<?php if (!empty($errorMessage)): ?>
-    <div class="error-notification">
-        <?php echo $errorMessage; ?>
-    </div>
-<?php endif; ?>
