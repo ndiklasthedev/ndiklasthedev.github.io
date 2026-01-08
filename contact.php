@@ -4,11 +4,13 @@ $errors = [];
 $errorMessage = '';
 
 if (!empty($_POST)) {
-    $name = $_POST['name'];
-    $email = $_POST['email'];
-    $message = $_POST['message'];
-    $phone = $_POST['phone'];
+    // Sanitize and capture inputs
+    $name = strip_tags(trim($_POST['name']));
+    $email = filter_var(trim($_POST['email']), FILTER_SANITIZE_EMAIL);
+    $message = strip_tags(trim($_POST['message']));
+    $phone = strip_tags(trim($_POST['phone']));
 
+    // Validation
     if (empty($name)) {
         $errors[] = 'Name is empty';
     }
@@ -18,28 +20,54 @@ if (!empty($_POST)) {
     } else if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $errors[] = 'Email is invalid';
     }
+
     if (empty($message)) {
         $errors[] = 'Message is empty';
     }
 
-
     if (empty($errors)) {
         $toEmail = 'greentropikal@outlook.com';
-        $emailSubject = 'New email from your contant form';
-        $headers = ['From' => $email, 'Reply-To' => $email, 'Content-type' => 'text/html; charset=iso-8859-1'];
+        $emailSubject = 'New email from your contact form';
+        
+        // IMPORTANT: Replace 'yourdomain.com' with your actual website domain
+        // This MUST be an email that looks like it belongs to your server.
+        $senderEmail = 'website-form@yourdomain.com'; 
+        
+        // Constructing Headers as a string for maximum compatibility
+        $headers  = "From: " . $senderEmail . "\r\n";
+        $headers .= "Reply-To: " . $email . "\r\n";
+        $headers .= "MIME-Version: 1.0\r\n";
+        $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
 
-        $bodyParagraphs = ["Name: {$name}","Phone: {$phone}", "Email: {$email}", "Message:", $message];
-        $body = join(PHP_EOL, $bodyParagraphs);
+        // Constructing the Email Body
+        $bodyParagraphs = [
+            "<strong>Name:</strong> {$name}",
+            "<strong>Phone:</strong> {$phone}",
+            "<strong>Email:</strong> {$email}",
+            "<br><strong>Message:</strong><br>",
+            nl2br($message) // Converts line breaks to <br> tags
+        ];
+        $body = "<html><body>" . join("<br>", $bodyParagraphs) . "</body></html>";
 
+        // Attempt to send
         if (mail($toEmail, $emailSubject, $body, $headers)) {
+            // Redirect to thank you page
             header('Location: thank-you.html');
+            exit; 
         } else {
-            $errorMessage = 'Oops, something went wrong. Please try again later';
+            $errorMessage = 'Oops, something went wrong. The server failed to send the message.';
         }
     } else {
+        // Display validation errors
         $allErrors = join('<br/>', $errors);
         $errorMessage = "<p style='color: red;'>{$allErrors}</p>";
     }
 }
 
 ?>
+
+<?php if (!empty($errorMessage)): ?>
+    <div class="error-notification">
+        <?php echo $errorMessage; ?>
+    </div>
+<?php endif; ?>
